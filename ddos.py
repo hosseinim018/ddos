@@ -2,7 +2,27 @@ import aiohttp
 import asyncio
 import time
 import argparse
-from typing import List
+from typing import Generator, List
+from tqdm import tqdm
+
+
+def create_request_tasks(session: aiohttp.ClientSession, url: str, num_requests: int) -> Generator[asyncio.Task, None, None]:
+    """
+    A generator function that yields tasks, with each task representing a GET request to the given URL using the provided session.
+
+    Parameters:
+    - session: aiohttp.ClientSession object
+    - url: str, the URL to send GET requests to
+    - num_requests: int, the number of requests to send
+
+    Yields:
+    - task: asyncio.Task object
+    """
+    for i in range(num_requests):
+        # Create a GET request with the given URL and SSL disabled
+        request = session.get(url, ssl=False)
+        # Create a task to execute the request asynchronously and yield it
+        yield asyncio.create_task(request)
 
 
 async def send_requests(url: str, num_requests: int) -> List[aiohttp.ClientResponse]:
@@ -17,19 +37,16 @@ async def send_requests(url: str, num_requests: int) -> List[aiohttp.ClientRespo
     - responses: list of aiohttp.ClientResponse objects
     """
     async with aiohttp.ClientSession() as session:
-        # Send the requests and store the responses in a list
-        responses = []
-        for i in range(num_requests):
-            # Create a GET request with the given URL and SSL disabled
-            request = session.get(url, ssl=False)
-            # Send the request asynchronously and store the response in the list
-            response = await request
-            responses.append(response)
+        tasks = list(create_request_tasks(session, url, num_requests))
 
-            # Print the progress of the requests being sent
-            if i % 1000 == 0:
-                print(f"{i} requests sent")
+        # Use tqdm to display a loading indicator
+        with tqdm(total=len(tasks)) as pbar:
+            # Wait for all tasks to complete and return the responses as a list
+            for f in asyncio.as_completed(tasks):
+                await f
+                pbar.update(1)
 
+        responses = [f.result() for f in tasks]
         return responses
 
 
