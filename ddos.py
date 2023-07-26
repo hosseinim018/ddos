@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-import time
 import argparse
 from typing import Generator, List
 from tqdm import tqdm
@@ -57,11 +56,5 @@ if __name__ == '__main__':
     # Set the event loop policy to the WindowsSelectorEventLoopPolicy on Windows platform to avoid a warning message
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    start_time = time.time()
-
     # Send the requests and get the responses
     asyncio.run(send_requests(args.url, args.num_requests))
-
-    end_time = time.time()
-
-    print(f"Total time taken: {end_time - start_time} seconds")
