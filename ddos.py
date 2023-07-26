@@ -2,26 +2,7 @@ import aiohttp
 import asyncio
 import time
 import argparse
-from typing import Generator, List
-
-
-def create_request_tasks(session: aiohttp.ClientSession, url: str, num_requests: int) -> Generator[asyncio.Task, None, None]:
-    """
-    A generator function that yields tasks, with each task representing a GET request to the given URL using the provided session.
-
-    Parameters:
-    - session: aiohttp.ClientSession object
-    - url: str, the URL to send GET requests to
-    - num_requests: int, the number of requests to send
-
-    Yields:
-    - task: asyncio.Task object
-    """
-    for i in range(num_requests):
-        # Create a GET request with the given URL and SSL disabled
-        request = session.get(url, ssl=False)
-        # Create a task to execute the request asynchronously and yield it
-        yield asyncio.create_task(request)
+from typing import List
 
 
 async def send_requests(url: str, num_requests: int) -> List[aiohttp.ClientResponse]:
@@ -36,8 +17,19 @@ async def send_requests(url: str, num_requests: int) -> List[aiohttp.ClientRespo
     - responses: list of aiohttp.ClientResponse objects
     """
     async with aiohttp.ClientSession() as session:
-        # Wait for all tasks to complete and return the responses as a list
-        responses = await asyncio.gather(*create_request_tasks(session, url, num_requests))
+        # Send the requests and store the responses in a list
+        responses = []
+        for i in range(num_requests):
+            # Create a GET request with the given URL and SSL disabled
+            request = session.get(url, ssl=False)
+            # Send the request asynchronously and store the response in the list
+            response = await request
+            responses.append(response)
+
+            # Print the progress of the requests being sent
+            if i % 1000 == 0:
+                print(f"{i} requests sent")
+
         return responses
 
 
