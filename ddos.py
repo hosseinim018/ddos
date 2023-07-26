@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 import time
 import argparse
-from typing import Generator
+from typing import Generator, List
 
 
 def create_request_tasks(session: aiohttp.ClientSession, url: str, num_requests: int) -> Generator[asyncio.Task, None, None]:
