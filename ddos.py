@@ -46,9 +46,6 @@ async def send_requests(url: str, num_requests: int) -> List[aiohttp.ClientRespo
                 await f
                 pbar.update(1)
 
-        responses = [f.result() for f in tasks]
-        return responses
-
 
 if __name__ == '__main__':
     # Set up argparse to parse command line arguments
@@ -63,12 +60,8 @@ if __name__ == '__main__':
     start_time = time.time()
 
     # Send the requests and get the responses
-    responses: List[aiohttp.ClientResponse] = asyncio.run(send_requests(args.url, args.num_requests))
+    asyncio.run(send_requests(args.url, args.num_requests))
 
     end_time = time.time()
-
-    # Print out the status code of each response received from the GET requests
-    for response in responses:
-        print(response.status)
 
     print(f"Total time taken: {end_time - start_time} seconds")
